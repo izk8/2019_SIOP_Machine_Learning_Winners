@@ -1,0 +1,547 @@
+setwd("D:/Google Drive/2019 SIOP_ML")# this will need to be adjusted to wherever you have stored your files
+
+library(tidyverse) # general utility & workflow functions
+library(tidytext) # tidy implimentation of NLP methods
+library(topicmodels) # for LDA topic modelling 
+library(tm) # general text mining functions, making document term matrixes
+library(SnowballC) # for stemming
+library(readr)# to read in csv
+library(textstem)#for lemmetization
+library(text2vec)#for word vectors
+library(stopwords)
+library(data.table)
+library(magrittr)
+library(glmnet)
+library(koRpus)
+library(leaps)
+library(ggpubr)
+library(textmineR)
+library(randomForest)
+library(ggpubr)
+library(neuralnet)
+
+
+#import data
+soi.data <- read_csv("siop_ml_train_participant.csv") #bring in train data
+
+#lem.soi.data <- lemmatize_strings(soi.data) #this actually decreased performance
+
+#merge responses
+soi.data$all_text <- paste(soi.data$open_ended_1, soi.data$open_ended_2, soi.data$open_ended_3, 
+                           soi.data$open_ended_4, soi.data$open_ended_5)
+
+
+### sentiment with SentimentAnalysis ###
+########################################
+##### breaking it out per question #####
+
+library(SentimentAnalysis)
+all.corpus <- Corpus(VectorSource(soi.data$all_text))
+q1.corpus <- Corpus(VectorSource(soi.data$open_ended_1))
+q2.corpus <- Corpus(VectorSource(soi.data$open_ended_2))
+q3.corpus <- Corpus(VectorSource(soi.data$open_ended_3))
+q4.corpus <- Corpus(VectorSource(soi.data$open_ended_4))
+q5.corpus <- Corpus(VectorSource(soi.data$open_ended_5))
+
+sentiment.all <- analyzeSentiment(all.corpus)
+sentiment.q1 <- analyzeSentiment(q1.corpus)
+sentiment.q2 <- analyzeSentiment(q2.corpus)
+sentiment.q3 <- analyzeSentiment(q3.corpus)
+sentiment.q4 <- analyzeSentiment(q4.corpus)
+sentiment.q5 <- analyzeSentiment(q5.corpus)
+
+sentiment.all.df <- data.frame(sentiment.all)
+sentiment.q1.df <- data.frame(sentiment.q1)
+sentiment.q2.df <- data.frame(sentiment.q2)
+sentiment.q3.df <- data.frame(sentiment.q3)
+sentiment.q4.df <- data.frame(sentiment.q4)
+sentiment.q5.df <- data.frame(sentiment.q5)
+
+colnames(sentiment.all.df) <- paste("all", colnames(sentiment.q1.df), sep ="_")
+colnames(sentiment.q1.df) <- paste("q1", colnames(sentiment.q1.df), sep ="_")
+colnames(sentiment.q2.df) <- paste("q2", colnames(sentiment.q2.df), sep ="_")
+colnames(sentiment.q3.df) <- paste("q3", colnames(sentiment.q3.df), sep ="_")
+colnames(sentiment.q4.df) <- paste("q4", colnames(sentiment.q4.df), sep ="_")
+colnames(sentiment.q5.df) <- paste("q5", colnames(sentiment.q5.df), sep ="_")
+
+
+### readability ###
+###################
+
+library(quanteda)
+
+readability <- textstat_readability(soi.data$all_text, measure = c("Flesch.Kincaid", 
+                                                                   "Dale.Chall.old",
+                                                                   "Wheeler.Smith", 
+                                                                   "meanSentenceLength",
+                                                                   "meanWordSyllables",
+                                                                   "Strain",
+                                                                   "SMOG",
+                                                                   "Scrabble",
+                                                                   "FOG",
+                                                                   "Farr.Jenkins.Paterson",
+                                                                   "DRP",
+                                                                   "Dale.Chall")) 
+
+
+### dtm ###
+###########
+
+prep_fun <- tolower
+tok_fun <- word_tokenizer
+#all qs
+all.it_train <- itoken(soi.data$all_text,
+                       preprocessor = prep_fun,
+                       tokenizer = tok_fun,
+                       ids = soi.data$Respondent_ID,
+                       progressbar = TRUE)
+all.vocab <- create_vocabulary(all.it_train)
+all.vocab <- prune_vocabulary(all.vocab, term_count_min = 25, doc_proportion_max = 0.90)#worked with 25/.90
+all.vectorizer <- vocab_vectorizer(all.vocab)
+all.dtm <- create_dtm(all.it_train, all.vectorizer)
+all.dtm.df <- data.frame(as.matrix(all.dtm)) #convert dtm to dataframe
+colnames(all.dtm.df) <- paste("all", colnames(all.dtm.df), sep ="_")
+#q1
+q1.it_train <- itoken(soi.data$open_ended_1,
+                      preprocessor = prep_fun,
+                      tokenizer = tok_fun,
+                      ids = soi.data$Respondent_ID,
+                      progressbar = TRUE)
+q1.vocab <- create_vocabulary(q1.it_train)
+q1.vocab <- prune_vocabulary(q1.vocab, term_count_min = 25, doc_proportion_max = 0.90)
+q1.vectorizer <- vocab_vectorizer(q1.vocab)
+q1.dtm <- create_dtm(q1.it_train, q1.vectorizer)
+q1.dtm.df <- data.frame(as.matrix(q1.dtm)) #convert dtm to dataframe
+colnames(q1.dtm.df) <- paste("q1", colnames(q1.dtm.df), sep ="_")
+#q2
+q2.it_train <- itoken(soi.data$open_ended_2,
+                      preprocessor = prep_fun,
+                      tokenizer = tok_fun,
+                      ids = soi.data$Respondent_ID,
+                      progressbar = TRUE)
+q2.vocab <- create_vocabulary(q2.it_train)
+q2.vocab <- prune_vocabulary(q2.vocab, term_count_min = 25, doc_proportion_max = 0.90)
+q2.vectorizer <- vocab_vectorizer(q2.vocab)
+q2.dtm <- create_dtm(q2.it_train, q2.vectorizer)
+q2.dtm.df <- data.frame(as.matrix(q2.dtm)) #convert dtm to dataframe
+colnames(q2.dtm.df) <- paste("q2", colnames(q2.dtm.df), sep ="_")
+#q3
+q3.it_train <- itoken(soi.data$open_ended_3,
+                      preprocessor = prep_fun,
+                      tokenizer = tok_fun,
+                      ids = soi.data$Respondent_ID,
+                      progressbar = TRUE)
+q3.vocab <- create_vocabulary(q3.it_train)
+q3.vocab <- prune_vocabulary(q3.vocab, term_count_min = 25, doc_proportion_max = 0.90)
+q3.vectorizer <- vocab_vectorizer(q3.vocab)
+q3.dtm <- create_dtm(q3.it_train, q3.vectorizer)
+q3.dtm.df <- data.frame(as.matrix(q3.dtm)) #convert dtm to dataframe
+colnames(q3.dtm.df) <- paste("q3", colnames(q3.dtm.df), sep ="_")
+#q4
+q4.it_train <- itoken(soi.data$open_ended_4,
+                      preprocessor = prep_fun,
+                      tokenizer = tok_fun,
+                      ids = soi.data$Respondent_ID,
+                      progressbar = TRUE)
+q4.vocab <- create_vocabulary(q4.it_train)
+q4.vocab <- prune_vocabulary(q4.vocab, term_count_min = 25, doc_proportion_max = 0.90)
+q4.vectorizer <- vocab_vectorizer(q4.vocab)
+q4.dtm <- create_dtm(q4.it_train, q4.vectorizer)
+q4.dtm.df <- data.frame(as.matrix(q4.dtm)) #convert dtm to dataframe
+colnames(q4.dtm.df) <- paste("q4", colnames(q4.dtm.df), sep ="_")
+#q5
+q5.it_train <- itoken(soi.data$open_ended_5,
+                      preprocessor = prep_fun,
+                      tokenizer = tok_fun,
+                      ids = soi.data$Respondent_ID,
+                      progressbar = TRUE)
+q5.vocab <- create_vocabulary(q5.it_train)
+q5.vocab <- prune_vocabulary(q5.vocab, term_count_min = 25, doc_proportion_max = 0.90)
+q5.vectorizer <- vocab_vectorizer(q5.vocab)
+q5.dtm <- create_dtm(q5.it_train, q5.vectorizer)
+q5.dtm.df <- data.frame(as.matrix(q5.dtm)) #convert dtm to dataframe
+colnames(q5.dtm.df) <- paste("q5", colnames(q5.dtm.df), sep ="_")
+
+################################
+### bring data back together ###
+################################
+soi.join <- cbind(soi.data, sentiment.all.df, sentiment.q1.df, sentiment.q2.df, 
+                  sentiment.q3.df, sentiment.q4.df, sentiment.q5.df, readability,
+                  all.dtm.df, q1.dtm.df, q2.dtm.df, q3.dtm.df, q4.dtm.df, q5.dtm.df)
+
+#export mega-dataset
+write.csv(soi.join, "mega_dataset.txt")
+
+soi.join <- subset(soi.join, select = -c(2:6, 12, 97))
+
+### test and train split ###
+############################
+
+#test and train split
+set.seed(2011)
+train <- sample(nrow(soi.join), 0.7*nrow(soi.join), replace = FALSE)
+TrainSet <- soi.join[train,]
+ValidSet <- soi.join[-train,]
+
+
+### randomforest time #################################################
+#######################################################################
+
+e.forest <- randomForest(E_Scale_score ~ . - A_Scale_score - N_Scale_score - O_Scale_score - C_Scale_score, 
+                         data = TrainSet,  ntree = 2500, mtry = 4, importance = TRUE)
+
+print(e.forest)
+
+predTestE <- predict(e.forest, ValidSet)
+ValidSet$E_Pred_rf <- predTestE
+
+
+e.rf.test <- cor.test(ValidSet$E_Scale_score, ValidSet$E_Pred_rf,
+                      method = "pearson")
+
+print(e.rf.test)
+
+varImpPlot(e.forest)
+
+#keep.e.forest <- e.forest
+
+# add E_prediction so it can be used as variable in subsequent models
+E_Pred <- predict(e.forest, TrainSet)
+TrainSet$E_Pred_rf <- E_Pred
+
+
+### agreeableness ###
+#####################
+a.forest <- randomForest(A_Scale_score ~ . - E_Scale_score - N_Scale_score - O_Scale_score - C_Scale_score, 
+                         data = TrainSet,  ntree = 1500, mtry = 12, importance = TRUE)
+
+print(a.forest)
+varImpPlot(a.forest)
+
+predTestA <-predict(a.forest, ValidSet)
+ValidSet$A_Pred_rf <- predTestA
+
+a.rf.test <- cor.test(ValidSet$A_Scale_score, ValidSet$A_Pred_rf,
+                      method = "pearson")
+
+print(a.rf.test)
+
+#keep.a.forest <- a.forest
+
+predTestA <- predict(a.forest, TrainSet)
+TrainSet$A_Pred_rf <- predTestA
+
+#a2.forest <- grow(a.forest, 2000)
+
+#predTestA2 <- predict(a2.forest, ValidSet)
+#ValidSet$A2_Pred_rf <- predTestA2
+#a2.rf.test <- cor.test(ValidSet$A_Scale_score, ValidSet$A2_Pred_rf,
+#                      method = "pearson")
+#print(a2.rf.test)
+
+
+
+### Openness ###
+################
+
+o.forest <- randomForest(O_Scale_score ~ . - E_Scale_score - A_Scale_score - N_Scale_score - A_Scale_score, 
+                         data = TrainSet,  ntree = 3500, mtry = 3, importance = TRUE)
+
+print(o.forest)
+varImpPlot(o.forest)
+
+predTestO <-predict(o.forest, ValidSet)
+ValidSet$O_Pred_rf <- predTestO
+
+o.rf.test <- cor.test(ValidSet$O_Scale_score, ValidSet$O_Pred_rf,
+                      method = "pearson")
+
+print(o.rf.test)
+#keep.o.forest <- o.forest
+
+PredTestO <- predict(o.forest, TrainSet)
+TrainSet$O_Pred_rf <- PredTestO
+
+### Conscientiousness ###
+#########################
+
+c.forest <- randomForest(C_Scale_score ~ . - E_Scale_score - A_Scale_score - O_Scale_score - N_Scale_score, 
+                         data = TrainSet,  ntree = 3000, mtry = 3, importance = TRUE)
+
+print(c.forest)
+varImpPlot(c.forest)
+
+predTestC <-predict(c.forest, ValidSet)
+ValidSet$C_Pred_rf <- predTestC
+
+c.rf.test <- cor.test(ValidSet$C_Scale_score, ValidSet$C_Pred_rf,
+                      method = "pearson")
+#keep.c.forest <- c.forest
+print(c.rf.test)
+
+predTestC <- predict(c.forest, TrainSet)
+TrainSet$C_Pred_rf <- predTestC
+
+### Neuroticism ###
+###################
+
+n.forest <- randomForest(N_Scale_score ~ . - E_Scale_score - A_Scale_score - O_Scale_score - C_Scale_score, 
+                         data = TrainSet,  ntree = 2000, mtry = 4, importance = TRUE)
+
+print(n.forest)
+varImpPlot(n.forest)
+
+predTestN <-predict(n.forest, ValidSet)
+ValidSet$N_Pred_rf <- predTestN
+
+n.rf.test <- cor.test(ValidSet$N_Scale_score, ValidSet$N_Pred_rf,
+                      method = "pearson")
+
+print(n.rf.test)
+
+#keep.n.forest <- n.forest
+
+predTestN <- predict(n.forest, TrainSet)
+TrainSet$N_Pred_rf <- predTestN
+
+
+### time to score the dev data ################################################
+###############################################################################
+###############################################################################
+
+#import data
+dev.data <- read_csv("siop_ml_dev_participant.csv") #bring in train data
+
+#merge responses
+dev.data$all_text <- paste(dev.data$open_ended_1, dev.data$open_ended_2, dev.data$open_ended_3, 
+                           dev.data$open_ended_4, dev.data$open_ended_5)
+# vectorize text
+prep_fun <- tolower
+tok_fun <- word_tokenizer
+#all qs
+dev.all.it_train <- itoken(dev.data$all_text,
+                           preprocessor = prep_fun,
+                           tokenizer = tok_fun,
+                           ids = dev.data$Respondent_ID,
+                           progressbar = TRUE)
+dev.all.vocab <- create_vocabulary(dev.all.it_train)
+dev.all.vectorizer <- vocab_vectorizer(dev.all.vocab)
+dev.all.dtm <- create_dtm(dev.all.it_train, dev.all.vectorizer)
+dev.all.dtm.df <- data.frame(as.matrix(dev.all.dtm)) #convert dtm to dataframe
+colnames(dev.all.dtm.df) <- paste("all", colnames(dev.all.dtm.df), sep ="_")
+#q1
+dev.q1.it_train <- itoken(dev.data$open_ended_1,
+                          preprocessor = prep_fun,
+                          tokenizer = tok_fun,
+                          ids = dev.data$Respondent_ID,
+                          progressbar = TRUE)
+dev.q1.vocab <- create_vocabulary(dev.q1.it_train)
+dev.q1.vectorizer <- vocab_vectorizer(dev.q1.vocab)
+dev.q1.dtm <- create_dtm(dev.q1.it_train, dev.q1.vectorizer)
+dev.q1.dtm.df <- data.frame(as.matrix(dev.q1.dtm)) #convert dtm to dataframe
+colnames(dev.q1.dtm.df) <- paste("q1", colnames(dev.q1.dtm.df), sep ="_")
+#q2
+dev.q2.it_train <- itoken(dev.data$open_ended_2,
+                          preprocessor = prep_fun,
+                          tokenizer = tok_fun,
+                          ids = dev.data$Respondent_ID,
+                          progressbar = TRUE)
+dev.q2.vocab <- create_vocabulary(dev.q2.it_train)
+dev.q2.vectorizer <- vocab_vectorizer(dev.q2.vocab)
+dev.q2.dtm <- create_dtm(dev.q2.it_train, dev.q2.vectorizer)
+dev.q2.dtm.df <- data.frame(as.matrix(dev.q2.dtm)) #convert dtm to dataframe
+colnames(dev.q2.dtm.df) <- paste("q2", colnames(dev.q2.dtm.df), sep ="_")
+#q3
+dev.q3.it_train <- itoken(dev.data$open_ended_3,
+                          preprocessor = prep_fun,
+                          tokenizer = tok_fun,
+                          ids = dev.data$Respondent_ID,
+                          progressbar = TRUE)
+dev.q3.vocab <- create_vocabulary(dev.q3.it_train)
+dev.q3.vectorizer <- vocab_vectorizer(dev.q3.vocab)
+dev.q3.dtm <- create_dtm(dev.q3.it_train, dev.q3.vectorizer)
+dev.q3.dtm.df <- data.frame(as.matrix(dev.q3.dtm)) #convert dtm to dataframe
+colnames(dev.q3.dtm.df) <- paste("q3", colnames(dev.q3.dtm.df), sep ="_")
+#q4
+dev.q4.it_train <- itoken(dev.data$open_ended_4,
+                          preprocessor = prep_fun,
+                          tokenizer = tok_fun,
+                          ids = dev.data$Respondent_ID,
+                          progressbar = TRUE)
+dev.q4.vocab <- create_vocabulary(dev.q4.it_train)
+dev.q4.vectorizer <- vocab_vectorizer(dev.q4.vocab)
+dev.q4.dtm <- create_dtm(dev.q4.it_train, dev.q4.vectorizer)
+dev.q4.dtm.df <- data.frame(as.matrix(dev.q4.dtm)) #convert dtm to dataframe
+colnames(dev.q4.dtm.df) <- paste("q4", colnames(dev.q4.dtm.df), sep ="_")
+#q5
+dev.q5.it_train <- itoken(dev.data$open_ended_5,
+                          preprocessor = prep_fun,
+                          tokenizer = tok_fun,
+                          ids = dev.data$Respondent_ID,
+                          progressbar = TRUE)
+dev.q5.vocab <- create_vocabulary(dev.q5.it_train)
+dev.q5.vectorizer <- vocab_vectorizer(dev.q5.vocab)
+dev.q5.dtm <- create_dtm(dev.q5.it_train, dev.q5.vectorizer)
+dev.q5.dtm.df <- data.frame(as.matrix(dev.q5.dtm)) #convert dtm to dataframe
+colnames(dev.q5.dtm.df) <- paste("q5", colnames(dev.q5.dtm.df), sep ="_")
+
+# add sentiment #
+#################
+
+library(SentimentAnalysis)
+
+dev.all.corpus <- Corpus(VectorSource(dev.data$all_text))
+dev.q1.corpus <- Corpus(VectorSource(dev.data$open_ended_1))
+dev.q2.corpus <- Corpus(VectorSource(dev.data$open_ended_2))
+dev.q3.corpus <- Corpus(VectorSource(dev.data$open_ended_3))
+dev.q4.corpus <- Corpus(VectorSource(dev.data$open_ended_4))
+dev.q5.corpus <- Corpus(VectorSource(dev.data$open_ended_5))
+
+dev.sentiment.all <- analyzeSentiment(dev.all.corpus)
+dev.sentiment.q1 <- analyzeSentiment(dev.q1.corpus)
+dev.sentiment.q2 <- analyzeSentiment(dev.q2.corpus)
+dev.sentiment.q3 <- analyzeSentiment(dev.q3.corpus)
+dev.sentiment.q4 <- analyzeSentiment(dev.q4.corpus)
+dev.sentiment.q5 <- analyzeSentiment(dev.q5.corpus)
+
+dev.sentiment.all.df <- data.frame(dev.sentiment.all)
+dev.sentiment.q1.df <- data.frame(dev.sentiment.q1)
+dev.sentiment.q2.df <- data.frame(dev.sentiment.q2)
+dev.sentiment.q3.df <- data.frame(dev.sentiment.q3)
+dev.sentiment.q4.df <- data.frame(dev.sentiment.q4)
+dev.sentiment.q5.df <- data.frame(dev.sentiment.q5)
+
+colnames(dev.sentiment.all.df) <- paste("all", colnames(dev.sentiment.q1.df), sep ="_")
+colnames(dev.sentiment.q1.df) <- paste("q1", colnames(dev.sentiment.q1.df), sep ="_")
+colnames(dev.sentiment.q2.df) <- paste("q2", colnames(dev.sentiment.q2.df), sep ="_")
+colnames(dev.sentiment.q3.df) <- paste("q3", colnames(dev.sentiment.q3.df), sep ="_")
+colnames(dev.sentiment.q4.df) <- paste("q4", colnames(dev.sentiment.q4.df), sep ="_")
+colnames(dev.sentiment.q5.df) <- paste("q5", colnames(dev.sentiment.q5.df), sep ="_")
+
+### readability ###
+###################
+
+library(quanteda)
+
+dev.readability <- textstat_readability(dev.data$all_text, measure = c("Flesch.Kincaid", 
+                                                                       "Dale.Chall.old",
+                                                                       "Wheeler.Smith", 
+                                                                       "meanSentenceLength",
+                                                                       "meanWordSyllables",
+                                                                       "Strain",
+                                                                       "SMOG",
+                                                                       "Scrabble",
+                                                                       "FOG",
+                                                                       "Farr.Jenkins.Paterson",
+                                                                       "DRP",
+                                                                       "Dale.Chall")) 
+
+
+### bring data back together ###
+################################
+dev.join <- cbind(dev.data, dev.sentiment.all.df, dev.sentiment.q1.df, dev.sentiment.q2.df, 
+                  dev.sentiment.q3.df, dev.sentiment.q4.df, dev.sentiment.q5.df, dev.readability,
+                  dev.all.dtm.df, dev.q1.dtm.df, dev.q2.dtm.df, dev.q3.dtm.df, dev.q4.dtm.df, dev.q5.dtm.df)
+
+dev.join$A_Scale_score <- 4.3
+dev.join$E_Scale_score <- 3.5
+dev.join$O_Scale_score <- 3.8
+dev.join$C_Scale_score <- 4.4
+dev.join$N_Scale_score <- 1.2
+
+### apply model(s)
+pred.e <-predict(e.forest, dev.join)
+dev.join$E_Pred <- pred.e
+dev.join$E_Pred_rf <- pred.e
+
+pred.a <-predict(a.forest, dev.join)
+dev.join$A_Pred <- pred.a
+dev.join$A_Pred_rf <- pred.a
+
+pred.o <-predict(o.forest, dev.join)
+dev.join$O_Pred <- pred.o
+dev.join$O_Pred_rf <- pred.o
+
+pred.c <-predict(c.forest, dev.join)
+dev.join$C_Pred <- pred.c
+dev.join$C_Pred_rf <- pred.c
+
+pred.n <-predict(n.forest, dev.join)
+dev.join$N_Pred <- pred.n
+
+library(dplyr)
+
+dev.sub <- subset(dev.join, select=c("Respondent_ID", "E_Pred", "A_Pred", "O_Pred", "C_Pred", "N_Pred"))
+
+write.csv(dev.sub, "dev_rf_a4.txt")
+
+#############################################################################################
+#############################################################################################
+
+### ensemble time ###
+#####################
+# this section will take the start with our best performing model
+# and use that result as a variable in the subsequent models
+ens.e <- predict(e.forest, TrainSet)
+TrainSet$E_Pred_rf <- ens.e
+
+ens.a <- predict(a.forest, TrainSet)
+TrainSet$A_Pred_rf <- ens.a
+
+ens.o <- predict(o.forest, TrainSet)
+TrainSet$O_Pred_rf <- ens.o
+
+##
+ens.c.forest <- randomForest(C_Scale_score ~ . - E_Scale_score - A_Scale_score - O_Scale_score - N_Scale_score, 
+                             data = TrainSet,  ntree = 2000, mtry = 6, importance = TRUE)
+ens.c <- predict(ens.c.forest, TrainSet)
+TrainSet$C_Pred_rf <- ens.c
+
+##
+ens.n.forest <- randomForest(N_Scale_score ~ . - E_Scale_score - A_Scale_score - O_Scale_score - C_Scale_score, 
+                             data = TrainSet,  ntree = 2000, mtry = 6, importance = TRUE)
+ens.n <- predict(ens.n.forest, TrainSet)
+TrainSet$N_Pred_rf <- ens.n
+
+
+
+##### apply to validset ####
+
+predTestE <-predict(e.forest, ValidSet)
+ValidSet$E_Pred_rf <- predTestE
+
+e.ens.rf.test <- cor.test(ValidSet$E_Scale_score, ValidSet$E_Pred_rf,
+                          method = "pearson")
+print(e.ens.rf.test)
+
+##
+predTestO <-predict(o.forest, ValidSet)
+ValidSet$O_Pred_rf <- predTestO
+
+o.ens.rf.test <- cor.test(ValidSet$O_Scale_score, ValidSet$O_Pred_rf,
+                          method = "pearson")
+print(o.ens.rf.test)
+
+##
+predTestA <-predict(a.forest, ValidSet)
+ValidSet$A_Pred_rf <- predTestA
+
+a.ens.rf.test <- cor.test(ValidSet$A_Scale_score, ValidSet$A_Pred_rf,
+                          method = "pearson")
+print(a.ens.rf.test)
+
+##
+predTestC <-predict(ens.c.forest, ValidSet)
+ValidSet$C_Pred_rf <- predTestC
+
+c.ens.rf.test <- cor.test(ValidSet$C_Scale_score, ValidSet$C_Pred_rf,
+                          method = "pearson")
+print(c.ens.rf.test)
+
+##
+predTestN <-predict(ens.n.forest, ValidSet)
+ValidSet$N_Pred_rf <- predTestN
+
+n.ens.rf.test <- cor.test(ValidSet$N_Scale_score, ValidSet$N_Pred_rf,
+                          method = "pearson")
+print(n.ens.rf.test)
