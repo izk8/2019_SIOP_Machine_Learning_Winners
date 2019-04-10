@@ -5,7 +5,7 @@ Work in progress. Check back mid April 2019 for completed code and data. Teams a
 Links to full data set and data sets used in competition coming. 
 
 ### Presentations
-Opening Award Presentation {}
+"Opening Award Presentation" {https://docs.google.com/presentation/d/1LauHiW7TI4o3imsxihLoGvHL8qMxHq0aQURliZ0B6Wk/edit?usp=sharing}
 See specific team folders for ppt presentations. 
 
 # Further Reading 
