@@ -4,8 +4,9 @@ Work in progress. Check back mid April 2019 for completed code and data. Teams a
 # Data 
 Links to full data set and data sets used in competition coming. 
 
-# Opening Award Presentation
-See specific team for ppt presentations. 
+### Presentations
+Opening Award Presentation {}
+See specific team folders for ppt presentations. 
 
 # Further Reading 
 
