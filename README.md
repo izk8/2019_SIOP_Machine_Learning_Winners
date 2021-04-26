@@ -2,13 +2,14 @@
 
 ### Overview ###
 * [Competition Overview and Awards Presentation](00_Git/2019_SIOP_Machine_Learning_Winners/2019_SIOP_ML_Competition_Pres.pdf) 
+* [Competition Portal](https://eval.ai/web/challenges/challenge-page/160/overview)
 
 ### Objective ###
 * Predict self-report personality traits from open-ended text of 5 SJIs.   
 
 ### Data ###
 * Data was especially created and collected for this compeition. 
-* Predictors. Predictors are text responses to five open-ended situational judgment items (SJIs) designed to elicit trait-relevant behaviors. Exact question text in the ([Code] readme (full_data/README.md))
+* Predictors. Predictors are text responses to five open-ended situational judgment items (SJIs) designed to elicit trait-relevant behaviors. Exact question text in the ([full_data readme](https://github.com/izk8/2019_SIOP_Machine_Learning_Winners/tree/master/full_data))
 * Critera. The criteria are aggregate trait scores on a Big Five personality inventory (link to items?)
 * Data splits. During the competition there were three splits: training set (n = 1088), dev set (n = 300), and testing set (n = 300).   
   
@@ -48,9 +49,9 @@ Private Test Set Average Correlation =.2293
 
 
 # Organizers #
-[Isaac Thompson](https://www.linkedin.com/in/thompsonisaac/) @ [Modern Hire](https://www.modernhire.org)  
-[Nick Koenig](https://www.linkedin.com/in/nick-koenig-69699a27/) @ [Modern Hire](https://www.modernhire.org)   
-[Mengqiao (MQ) Liu](https://www.linkedin.com/in/mengqiao-mq-liu-75288375/) @ [Amazon](www.amazon.com)
+[Isaac Thompson](https://www.linkedin.com/in/thompsonisaac/) @ [Modern Hire](https://www.modernhire.com)  
+[Nick Koenig](https://www.linkedin.com/in/nick-koenig-69699a27/) @ [Modern Hire](https://www.modernhire.com)   
+[Mengqiao (MQ) Liu](https://www.linkedin.com/in/mengqiao-mq-liu-75288375/) @ [Amazon](https://www.amazon.com)
 
 
 ### How to Cite Data

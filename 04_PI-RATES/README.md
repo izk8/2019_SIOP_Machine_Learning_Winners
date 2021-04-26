@@ -1,4 +1,1 @@
-#  Team $*&#&*# Code! # 
-
-## Notes On How to Use ## 
-* some notes... 
+#  Team PI-RATES Code # 
