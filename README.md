@@ -8,7 +8,7 @@
 
 ### Data ###
 * Data was especially created and collected for this compeition. 
-* Predictors. Predictors are text responses to five open-ended situational judgment items (SJIs) designed to elicit trait-relevant behaviors. Exact question text in the ([Code] readme (full_data/README.md))
+* Predictors. Predictors are text responses to five open-ended situational judgment items (SJIs) designed to elicit trait-relevant behaviors. Exact question text in the ([Code] readme (https://github.com/izk8/2019_SIOP_Machine_Learning_Winners/tree/master/full_data))
 * Critera. The criteria are aggregate trait scores on a Big Five personality inventory (link to items?)
 * Data splits. During the competition there were three splits: training set (n = 1088), dev set (n = 300), and testing set (n = 300).   
   
