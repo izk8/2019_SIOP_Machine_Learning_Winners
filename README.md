@@ -49,9 +49,9 @@ Private Test Set Average Correlation =.2293
 
 
 # Organizers #
-[Isaac Thompson](https://www.linkedin.com/in/thompsonisaac/) @ [Modern Hire](https://www.modernhire.org)  
-[Nick Koenig](https://www.linkedin.com/in/nick-koenig-69699a27/) @ [Modern Hire](https://www.modernhire.org)   
-[Mengqiao (MQ) Liu](https://www.linkedin.com/in/mengqiao-mq-liu-75288375/) @ [Amazon](www.amazon.com)
+[Isaac Thompson](https://www.linkedin.com/in/thompsonisaac/) @ [Modern Hire](https://www.modernhire.com)  
+[Nick Koenig](https://www.linkedin.com/in/nick-koenig-69699a27/) @ [Modern Hire](https://www.modernhire.com)   
+[Mengqiao (MQ) Liu](https://www.linkedin.com/in/mengqiao-mq-liu-75288375/) @ [Amazon](https://www.amazon.com)
 
 
 ### How to Cite Data
