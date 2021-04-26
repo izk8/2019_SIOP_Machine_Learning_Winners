@@ -2,6 +2,7 @@
 
 ### Overview ###
 * [Competition Overview and Awards Presentation](00_Git/2019_SIOP_Machine_Learning_Winners/2019_SIOP_ML_Competition_Pres.pdf) 
+* [Competition Portal](https://eval.ai/web/challenges/challenge-page/160/overview)
 
 ### Objective ###
 * Predict self-report personality traits from open-ended text of 5 SJIs.   
