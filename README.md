@@ -1,7 +1,7 @@
 # Data and Code for the 2019 SIOP Machine Learning Competition
 
 ### Overview ###
-* [Competition Overview and Awards Presentation](00_Git/2019_SIOP_Machine_Learning_Winners/2019_SIOP_ML_Competition_Pres.pdf) 
+* [Competition Overview and Awards Presentation](https://github.com/izk8/2019_SIOP_Machine_Learning_Winners/blob/master/2019_SIOP_ML_Competition_Pres.pdf) 
 * [Competition Portal](https://eval.ai/web/challenges/challenge-page/160/overview)
 
 ### Objective ###
