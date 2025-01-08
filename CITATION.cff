@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "The 2019 SIOP Machine Learning Competition"
+type: "machine-learning-competition"
+conference:
+  name: "34th annual Society for Industrial and Organizational Psychology conference"
+  location: "Austin, TX"
+  year: 2019
+repository-code: "https://github.com/izk8/2019_SIOP_Machine_Learning_Winners"
+abstract: "This repository contains the winning solution from the 2019 SIOP Machine Learning Competition, focusing on personality prediction using AI and deep learning techniques. The project includes methodology, feature engineering approaches, model development, and results analysis."
+keywords:
+  - machine learning
+  - personality prediction
+  - deep learning
+  - Artificial Intelligence
+  - Society for Industrial and Organizational Psychology
+date-released: "2019"
+url: "https://github.com/izk8/2019_SIOP_Machine_Learning_Winners"
+preferred-citation:
+  type: "conference-presentation"
+  authors:
+    - family-names: "Thompson"
+      given-names: "Isaac"
+    - family-names: "Koenig"
+      given-names: "Nick"
+    - family-names: "Lui"
+      given-names: "Mengqiao"
+  title: "The 2019 SIOP Machine Learning Competition"
+  conference:
+    name: "34th annual Society for Industrial and Organizational Psychology conference"
+    location: "Austin, TX"
+    date: "2019"
+  notes: "Presented at SIOP 2019" 
